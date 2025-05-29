@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  data-formulator:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: data-formulator
+    container_name: data-formulator
+    ports:
+      - "5070:8000"  # 프론트엔드 포트
+      - "5071:5000"  # 백엔드 포트
+    volumes:
+      - ./data:/app/data-formulator/data
+    environment:
+      - LOCAL_DB_DIR=/app/data-formulator/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dev-net
+
+networks:
+  dev-net:
+    name: dev-net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+          gateway: 172.25.0.1
