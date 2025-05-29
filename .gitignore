@@ -1,4 +1,4 @@
-
+data/duckdb
 *env
 *api-keys.env
 **/*.ipynb_checkpoints/
