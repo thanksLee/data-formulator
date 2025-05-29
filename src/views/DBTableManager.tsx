@@ -1,10 +1,10 @@
 // TableManager.tsx
 import React, { useState, useEffect, FC } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
   Grid,
   Box,
   IconButton,
@@ -79,7 +79,7 @@ export const handleDBDownload = async (sessionId: string) => {
         const response = await fetch(getUrls().DOWNLOAD_DB_FILE, {
             method: 'GET',
         });
-        
+
         // Check if the response is ok
         if (!response.ok) {
             const errorData = await response.json();
@@ -89,16 +89,16 @@ export const handleDBDownload = async (sessionId: string) => {
         // Get the blob directly from response
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        
+
         // Create a temporary link element
         const link = document.createElement('a');
         link.href = url;
         link.download = `df_${sessionId?.slice(0, 4)}.db`;
-        document.body.appendChild(link);    
-        
+        document.body.appendChild(link);
+
         // Trigger download
         link.click();
-        
+
         // Clean up
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
@@ -170,7 +170,7 @@ interface TableStatisticsViewProps {
 export class TableStatisticsView extends React.Component<TableStatisticsViewProps> {
     render() {
         const { tableName, columnStats } = this.props;
-        
+
         // Common styles for header cells
         const headerCellStyle = {
             backgroundColor: '#fff',
@@ -179,25 +179,25 @@ export class TableStatisticsView extends React.Component<TableStatisticsViewProp
             borderBottomColor: (theme: any) => theme.palette.primary.main,
             borderBottomWidth: '1px',
             borderBottomStyle: 'solid',
-            padding: '6px' 
+            padding: '6px'
         };
-        
+
         // Common styles for body cells
-        const bodyCellStyle = { 
-            fontSize: 10, 
-            padding: '6px' 
+        const bodyCellStyle = {
+            fontSize: 10,
+            padding: '6px'
         };
-        
+
         return (
-            <Box sx={{ 
+            <Box sx={{
                 height: '310px',  // Match the table container height from CustomReactTable
-                display: 'flex', 
-                flexDirection: 'column' 
+                display: 'flex',
+                flexDirection: 'column'
             }}>
-                <TableContainer sx={{ 
-                    flex: 1, 
+                <TableContainer sx={{
+                    flex: 1,
                     maxHeight: '310px',  // Adjust to account for the header
-                    overflow: 'auto' 
+                    overflow: 'auto'
                 }}>
                     <Table size="small" stickyHeader>
                         <TableHead>
@@ -214,14 +214,14 @@ export class TableStatisticsView extends React.Component<TableStatisticsViewProp
                         </TableHead>
                         <TableBody>
                             {columnStats.map((stat, idx) => (
-                                <TableRow 
-                                    key={stat.column} 
+                                <TableRow
+                                    key={stat.column}
                                     hover
                                     sx={{ }}
                                 >
-                                    <TableCell 
-                                        component="th" 
-                                        scope="row" 
+                                    <TableCell
+                                        component="th"
+                                        scope="row"
                                         sx={{...bodyCellStyle, fontWeight: "bold", backgroundColor: "#f7f7f7"}}
                                     >
                                         {stat.column}
@@ -245,7 +245,7 @@ export class TableStatisticsView extends React.Component<TableStatisticsViewProp
                                         {stat.statistics.max !== undefined ? stat.statistics.max : '-'}
                                     </TableCell>
                                     <TableCell align="right" sx={bodyCellStyle}>
-                                        {stat.statistics.avg !== undefined ? 
+                                        {stat.statistics.avg !== undefined ?
                                             Number(stat.statistics.avg).toFixed(2) : '-'}
                                     </TableCell>
                                 </TableRow>
@@ -265,13 +265,13 @@ export const DBTableManager: React.FC = () => {
 }
 
 export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function DBTableSelectionDialog({ buttonElement }) {
-    
+
     const dispatch = useDispatch<AppDispatch>();
     const sessionId = useSelector((state: DataFormulatorState) => state.sessionId);
 
     const [tableDialogOpen, setTableDialogOpen] = useState<boolean>(false);
     const [tableAnalysisMap, setTableAnalysisMap] = useState<Record<string, ColumnStatistics[] | null>>({});
-    
+
     // maps data loader type to list of param defs
     const [dataLoaderParamDefs, setDataLoaderParamDefs] = useState<Record<string, {name: string, default: string, type: string, required: boolean, description: string}[]>>({});
 
@@ -338,11 +338,11 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
     const handleDBUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-    
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('table_name', file.name.split('.')[0]);
-    
+
         try {
             setIsUploading(true);
             const response = await fetch(getUrls().UPLOAD_DB_FILE, {
@@ -369,11 +369,11 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
     const handleDBFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-    
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('table_name', file.name.split('.')[0]);
-    
+
         try {
             setIsUploading(true);
             const response = await fetch(getUrls().CREATE_TABLE, {
@@ -385,7 +385,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                 if (data.is_renamed) {
                     setErrorMessage({content: `Table ${data.original_name} already exists. Renamed to ${data.table_name}`, severity: "warning"});
                     setShowError(true);
-                } 
+                }
                 fetchTables();  // Refresh table list
             } else {
                 setErrorMessage({content: data.error || 'Failed to upload table', severity: "error"});
@@ -455,7 +455,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
         if (tableAnalysisMap[tableName]) return;
 
         console.log('Analyzing table:', tableName);
-        
+
         try {
             const response = await fetch(getUrls().GET_COLUMN_STATS, {
                 method: 'POST',
@@ -552,7 +552,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
         </Tooltip>
     }
 
-    let exportButton = 
+    let exportButton =
         <Tooltip title="save the local database to a duckdb .db file">
             <Button variant="text" size="small" onClick={() => {
                 handleDBDownload(sessionId ?? '')
@@ -572,7 +572,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                 <Button
                     variant="text"
                     component="label"
-                    sx={{ fontSize: "inherit", ...buttonSx}}                    
+                    sx={{ fontSize: "inherit", ...buttonSx}}
                     disabled={isUploading}
                 >
                     {element}
@@ -588,7 +588,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
         );
     }
 
-    let mainContent =  
+    let mainContent =
         <Box sx={{flexGrow: 1, bgcolor: 'background.paper', display: 'flex', flexDirection: 'row', minHeight: 400 }}>
             <Box sx={{display: "flex", flexDirection: "column", width: "180px", borderRight: 1, borderColor: 'divider'}}>
                 <Tabs
@@ -598,7 +598,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                     scrollButtons={dbTables.length > 8 ? "auto" : false}
                     allowScrollButtonsMobile
                     aria-label="Database tables"
-                    sx={{ 
+                    sx={{
                         maxHeight: '360px',
                         px: 0.5,
                         pt: 1,
@@ -622,25 +622,25 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                             </IconButton>
                         </Tooltip>
                     </Typography>
-                    {dbTables.length == 0 && 
+                    {dbTables.length == 0 &&
                         <Typography variant="caption" sx={{color: "lightgray", px: 2, py: 0.5, fontStyle: "italic"}}>no tables available</Typography>}
                     {dbTables.map((t, i) => (
-                        <Tab 
-                            key={t.name} 
+                        <Tab
+                            key={t.name}
                             value={t.name}
-                            wrapped 
+                            wrapped
                             label={
-                                <Typography variant="caption" 
-                                    sx={{textTransform: "none", width: "calc(100% - 4px)", textAlign: 'left', 
+                                <Typography variant="caption"
+                                    sx={{textTransform: "none", width: "calc(100% - 4px)", textAlign: 'left',
                                          textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>
                                     <Typography variant="caption" sx={{fontSize: 12}}>{t.name}</Typography>
                                 </Typography>
-                            } 
+                            }
                             onClick={() => {
                                 setSelectedTabKey(t.name);
                             }}
                             sx={{textTransform: "none", minHeight: 24, p: 0.5, ml: 2}}
-                            {...a11yProps(t.name)} 
+                            {...a11yProps(t.name)}
                         />
                     ))}
                 </Tabs>
@@ -653,39 +653,39 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                     sx={{px: 0.5}}
                 >
                     <Typography variant="caption" sx={{color: "text.secondary", fontWeight: "bold", px: 1}}>connect external data</Typography>
-                    {["file upload", "mysql", "kusto"].map((dataLoaderType, i) => (
-                        <Tab 
-                            key={`dataLoader:${dataLoaderType}`} 
-                            wrapped 
-                            label={<Typography variant="caption" 
-                                        sx={{textTransform: "none", width: "calc(100% - 4px)", textAlign: 'left', 
+                    {["file upload", ...Object.keys(dataLoaderParamDefs)].map((dataLoaderType, i) => (
+                        <Tab
+                            key={`dataLoader:${dataLoaderType}`}
+                            wrapped
+                            label={<Typography variant="caption"
+                                        sx={{textTransform: "none", width: "calc(100% - 4px)", textAlign: 'left',
                                             textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>
-                                    {dataLoaderType}</Typography>} 
+                                    {dataLoaderType}</Typography>}
                             onClick={() => {
                                 setSelectedTabKey('dataLoader:' + dataLoaderType);
                             }}
                             sx={{textTransform: "none", minHeight: 24, p: 0.5, ml: 2}}
-                            {...a11yProps(dataLoaderType)} 
+                            {...a11yProps(dataLoaderType)}
                         />
                     ))}
-                </Tabs> 
+                </Tabs>
             </Box>
             <TabPanel key={`dataLoader:note`} sx={{width: 960, }} show={selectedTabKey === ''}>
                 <Typography variant="caption" sx={{color: "text.secondary",  px: 1}}>The database is empty, refresh the table list or import some data to get started.</Typography>
             </TabPanel>
             <TabPanel key={`dataLoader:file upload`} sx={{width: 960, }} show={selectedTabKey === 'dataLoader:file upload'}>
-                {uploadFileButton(<Typography component="span" fontSize={18} textTransform="none">{isUploading ? 'uploading...' : 'upload a csv/tsv file to the local database'}</Typography>)} 
+                {uploadFileButton(<Typography component="span" fontSize={18} textTransform="none">{isUploading ? 'uploading...' : 'upload a csv/tsv file to the local database'}</Typography>)}
             </TabPanel>
             {dataLoaderParamDefs && Object.entries(dataLoaderParamDefs).map(([dataLoaderType, paramDefs]) => (
-                <TabPanel key={`dataLoader:${dataLoaderType}`} sx={{width: 960, position: "relative", maxWidth: '100%'}} 
+                <TabPanel key={`dataLoader:${dataLoaderType}`} sx={{width: 960, position: "relative", maxWidth: '100%'}}
                     show={selectedTabKey === 'dataLoader:' + dataLoaderType}>
-                    <DataLoaderForm 
+                    <DataLoaderForm
                         key={`data-loader-form-${dataLoaderType}`}
-                        dataLoaderType={dataLoaderType} 
+                        dataLoaderType={dataLoaderType}
                         paramDefs={paramDefs}
                         onImport={() => {
                             setIsUploading(true);
-                        }} 
+                        }}
                         onFinish={(status, message) => {
                             setIsUploading(false);
                             fetchTables();
@@ -693,7 +693,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                                 setErrorMessage({content: message, severity: "error"});
                                 setShowError(true);
                             }
-                        }} 
+                        }}
                     />
                 </TabPanel>
             ))}
@@ -705,7 +705,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                         <Paper variant="outlined" sx={{width: "100%"}}>
                             <Box sx={{ px: 1, display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
                                 <Typography variant="caption" sx={{  }}>
-                                    {showingAnalysis ? "column stats for " : "sample data from "} 
+                                    {showingAnalysis ? "column stats for " : "sample data from "}
                                     <Typography component="span" sx={{fontSize: 12, fontWeight: "bold"}}>
                                         {currentTable.name}
                                     </Typography>
@@ -714,7 +714,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                                     </Typography>
                                 </Typography>
                                 <Box sx={{ marginLeft: 'auto', display: 'flex', gap: 1 }}>
-                                    <Button 
+                                    <Button
                                         size="small"
                                         color={showingAnalysis ? "secondary" : "primary"}
                                         onClick={() => toggleAnalysisView(currentTable.name)}
@@ -723,8 +723,8 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                                     >
                                         {showingAnalysis ? "show data samples" : "show column stats"}
                                     </Button>
-                                    <IconButton 
-                                        size="small" 
+                                    <IconButton
+                                        size="small"
                                         color="error"
                                         onClick={() => handleDropTable(currentTable.name)}
                                         title="Drop Table"
@@ -734,17 +734,17 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                                 </Box>
                             </Box>
                             {showingAnalysis ? (
-                                <TableStatisticsView 
+                                <TableStatisticsView
                                     tableName={currentTable.name}
                                     columnStats={tableAnalysisMap[currentTable.name] ?? []}
                                 />
                             ) : (
-                                <CustomReactTable 
+                                <CustomReactTable
                                     rows={currentTable.sample_rows.map((row: any) => {
                                         return Object.fromEntries(Object.entries(row).map(([key, value]: [string, any]) => {
                                             return [key, String(value)];
                                         }));
-                                    }).slice(0, 9)} 
+                                    }).slice(0, 9)}
                                     columnDefs={currentTable.columns.map(col => ({
                                         id: col.name,
                                         label: col.name,
@@ -759,7 +759,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                     </TabPanel>
                 );
             })}
-        </Box>  
+        </Box>
 
     return (
         <>
@@ -768,11 +768,11 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
             }}>
                 {buttonElement}
             </Button>
-            
+
             {/* Error Snackbar */}
-            <Snackbar 
-                open={showError} 
-                autoHideDuration={6000} 
+            <Snackbar
+                open={showError}
+                autoHideDuration={6000}
                 onClose={handleCloseError}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
@@ -780,9 +780,9 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                     {errorMessage?.content}
                 </Alert>
             </Snackbar>
-            <Dialog 
-                key="db-table-selection-dialog" 
-                onClose={() => {setTableDialogOpen(false)}} 
+            <Dialog
+                key="db-table-selection-dialog"
+                onClose={() => {setTableDialogOpen(false)}}
                 open={tableDialogOpen}
                 sx={{ '& .MuiDialog-paper': { maxWidth: '100%', maxHeight: 800, minWidth: 800 } }}
             >
@@ -802,14 +802,14 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                 <DialogContent sx={{overflowX: "hidden", padding: 0, width: "100%", position: "relative"}} dividers>
                     {mainContent}
                     {isUploading && (
-                        <Box sx={{ 
-                            position: 'absolute', 
-                            top: 0, 
-                            left: 0, 
-                            width: '100%', 
-                            height: '100%', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <Box sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
                             backgroundColor: 'rgba(255, 255, 255, 0.7)',
                             zIndex: 1000
@@ -835,7 +835,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
                         </Button>
                         the backend database
                     </Typography>
-                    <Button 
+                    <Button
                         variant="contained"
                         size="small"
                         disabled={isUploading || dbTables.length === 0 || dbTables.find(t => t.name === selectedTabKey) === undefined}
@@ -855,7 +855,7 @@ export const DBTableSelectionDialog: React.FC<{ buttonElement: any }> = function
 }
 
 export const DataLoaderForm: React.FC<{
-    dataLoaderType: string, 
+    dataLoaderType: string,
     paramDefs: {name: string, default: string, type: string, required: boolean, description: string}[],
     onImport: () => void,
     onFinish: (status: "success" | "error", message: string) => void
@@ -937,13 +937,13 @@ export const DataLoaderForm: React.FC<{
                                         'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
-                                        data_loader_type: dataLoaderType, 
+                                        data_loader_type: dataLoaderType,
                                         data_loader_params: params, table_name: tableName
                                     })
                                 })
                                 .then(response => response.json())
                                 .then(data => {
-                                    
+
                                     if (data.status === "success") {
                                         onFinish("success", "Data ingested successfully");
                                     } else {
@@ -965,10 +965,10 @@ export const DataLoaderForm: React.FC<{
                                     return Object.fromEntries(Object.entries(row).map(([key, value]: [string, any]) => {
                                         return [key, String(value)];
                                     }));
-                                })} 
-                                columnDefs={metadata.columns.map((column: any) => ({id: column.name, label: column.name}))} 
-                                rowsPerPageNum={-1} 
-                                compact={false} 
+                                })}
+                                columnDefs={metadata.columns.map((column: any) => ({id: column.name, label: column.name}))}
+                                rowsPerPageNum={-1}
+                                compact={false}
                                 isIncompleteTable={metadata.row_count > 10}
                                 />
                             </Box>
@@ -979,16 +979,16 @@ export const DataLoaderForm: React.FC<{
                 </TableBody>
                 </Table>
             </TableContainer>,
-        mode === "query" && <DataQueryForm 
-            dataLoaderType={dataLoaderType} 
-            availableTables={Object.keys(tableMetadata).map(t => ({name: t, fields: tableMetadata[t].columns.map((c: any) => c.name)}))} 
+        mode === "query" && <DataQueryForm
+            dataLoaderType={dataLoaderType}
+            availableTables={Object.keys(tableMetadata).map(t => ({name: t, fields: tableMetadata[t].columns.map((c: any) => c.name)}))}
             dataLoaderParams={params} onImport={onImport} onFinish={onFinish} />
     ]
 
     return (
         <Box sx={{p: 0}}>
             {isConnecting && <Box sx={{
-                position: "absolute", top: 0, left: 0, width: "100%", height: "100%", 
+                position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
                 display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
                 backgroundColor: "rgba(255, 255, 255, 0.7)"
             }}>
@@ -1002,7 +1002,7 @@ export const DataLoaderForm: React.FC<{
                     <Box key={paramDef.name}>
                         <TextField
                             disabled={Object.keys(tableMetadata).length > 0}
-                            sx={{width: "270px", 
+                            sx={{width: "270px",
                                 '& .MuiInputLabel-root': {fontSize: 14},
                                 '& .MuiInputBase-root': {fontSize: 14},
                                 '& .MuiInputBase-input::placeholder': {fontSize: 12, fontStyle: "italic"}
@@ -1014,9 +1014,9 @@ export const DataLoaderForm: React.FC<{
                             label={paramDef.name}
                             value={params[paramDef.name]}
                             placeholder={paramDef.description}
-                            onChange={(event) => { 
+                            onChange={(event) => {
                                 dispatch(dfActions.updateDataLoaderConnectParam({
-                                    dataLoaderType, paramName: paramDef.name, 
+                                    dataLoaderType, paramName: paramDef.name,
                                     paramValue: event.target.value}));
                             }}
                             slotProps={{
@@ -1025,9 +1025,9 @@ export const DataLoaderForm: React.FC<{
                         />
                     </Box>
                 ))}
-                {paramDefs.length > 0 && <ButtonGroup sx={{height: 32, mt: 'auto'}} size="small" 
+                {paramDefs.length > 0 && <ButtonGroup sx={{height: 32, mt: 'auto'}} size="small"
                  variant="contained" color="primary">
-                    <Button 
+                    <Button
                         sx={{textTransform: "none"}}
                         onClick={() => {
                             setIsConnecting(true);
@@ -1037,7 +1037,7 @@ export const DataLoaderForm: React.FC<{
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    data_loader_type: dataLoaderType, 
+                                    data_loader_type: dataLoaderType,
                                     data_loader_params: params
                                 })
                         }).then(response => response.json())
@@ -1060,7 +1060,7 @@ export const DataLoaderForm: React.FC<{
                     }}>
                         {Object.keys(tableMetadata).length > 0 ? "refresh" : "connect"}
                     </Button>
-                    <Button 
+                    <Button
                         disabled={Object.keys(tableMetadata).length === 0}
                         sx={{textTransform: "none"}}
                         onClick={() => {
@@ -1097,7 +1097,7 @@ export const DataQueryForm: React.FC<{
         code: string,
     } | undefined>(undefined);
     const [queryResultName, setQueryResultName] = useState("");
-    
+
     const aiCompleteQuery = (query: string) => {
         if (queryResult?.status === "error") {
             setQueryResult(undefined);
@@ -1223,7 +1223,7 @@ export const DataQueryForm: React.FC<{
             <TextField
                 size="small"
                 label="import as"
-                sx={{width: 120, ml: 'auto', '& .MuiInputBase-root': {fontSize: 12, height: 32}, 
+                sx={{width: 120, ml: 'auto', '& .MuiInputBase-root': {fontSize: 12, height: 32},
                      '& .MuiInputLabel-root': {fontSize: 12, transform: "translate(14px, -6px) scale(0.75)"}}}
                 slotProps={{
                     inputLabel: {shrink: true}
@@ -1234,10 +1234,10 @@ export const DataQueryForm: React.FC<{
             <Button variant="contained" color="primary" size="small" disabled={queryResultName === ""} sx={{textTransform: "none", width: 120}}
                 onClick={() => handleImportQueryResult()}>
             import data
-            </Button> 
+            </Button>
         </Box>
     ] : [];
-    
+
     return (
         <Paper sx={{display: "flex", flexDirection: "column", gap: 1, p: 1, position: "relative"}}>
             {waiting && <Box sx={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
@@ -1251,16 +1251,16 @@ export const DataQueryForm: React.FC<{
                 </Typography>
                 {availableTables.map((table) => (
                     <Chip key={table.name} label={table.name} //icon={selectedTables.includes(table.name) ? <CheckIcon /> : undefined}
-                        color={selectedTables.includes(table.name) ? "primary" : "default"} variant="outlined" 
-                        sx={{ fontSize: 11, margin: 0.25, 
-                            height: 20, borderRadius: 0.5, 
+                        color={selectedTables.includes(table.name) ? "primary" : "default"} variant="outlined"
+                        sx={{ fontSize: 11, margin: 0.25,
+                            height: 20, borderRadius: 0.5,
                             borderColor: selectedTables.includes(table.name) ? "primary.main" : "rgba(0, 0, 0, 0.1)",
                             color: selectedTables.includes(table.name) ? "primary.main" : "text.secondary",
                             '&:hover': {
                                 backgroundColor: "rgba(0, 0, 0, 0.07)",
                             }
                         }}
-                        size="small" 
+                        size="small"
                         onClick={() => {
                             setSelectedTables(selectedTables.includes(table.name) ? selectedTables.filter(t => t !== table.name) : [...selectedTables, table.name]);
                         }}
@@ -1282,16 +1282,16 @@ export const DataQueryForm: React.FC<{
                             fontSize: 12,
                             paddingBottom: '24px',
                             backgroundColor: "rgba(0, 0, 0, 0.03)",
-                            
+
                             overflowY: "auto"
                         }}
                     />
                 </Box>
                 {queryResult?.status === "error" && <Box sx={{display: "flex", flexDirection: "row", gap: 1, alignItems: "center"}}>
                         <Typography variant="body2" sx={{color: "text.secondary", fontSize: 11, backgroundColor: "rgba(255, 0, 0, 0.1)", p: 0.5, borderRadius: 0.5}}>
-                            {queryResult?.message} 
+                            {queryResult?.message}
                         </Typography>
-                        <Button variant="outlined" color="primary" size="small" sx={{textTransform: "none", height: 24, ml: 1, minWidth: 120}} 
+                        <Button variant="outlined" color="primary" size="small" sx={{textTransform: "none", height: 24, ml: 1, minWidth: 120}}
                             startIcon={<PrecisionManufacturingIcon />} onClick={() => aiCompleteQuery(queryResult.code + "\n error:" + queryResult.message)}>
                             help me fix it
                         </Button>

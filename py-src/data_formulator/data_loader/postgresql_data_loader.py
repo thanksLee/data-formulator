@@ -8,16 +8,16 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-class MySQLDataLoader(ExternalDataLoader):
+class PostgreSQLDataLoader(ExternalDataLoader):
 
     @staticmethod
     def list_params() -> bool:
         params_list = [
-            {"name": "user", "type": "string", "required": True, "default": "root", "description": ""},
+            {"name": "user", "type": "string", "required": True, "default": "postgres", "description": ""},
             {"name": "password", "type": "string", "required": False, "default": "", "description": "leave blank for no password"},
             {"name": "host", "type": "string", "required": True, "default": "localhost", "description": ""},
-            {"name": "database", "type": "string", "required": True, "default": "mysql", "description": ""},
-            {"name": "port", "type": "string", "required": False, "default": "3306", "description": "MySQL port number"}
+            {"name": "database", "type": "string", "required": True, "default": "postgres", "description": ""},
+            {"name": "port", "type": "string", "required": False, "default": "5432", "description": "PostgreSQL port number"}
         ]
         return params_list
 
@@ -25,56 +25,59 @@ class MySQLDataLoader(ExternalDataLoader):
         self.params = params
         self.duck_db_conn = duck_db_conn
 
-        logger.info(f"Initializing MySQL connection with params: {json.dumps({k: v if k != 'password' else '***' for k, v in params.items()})}")
+        logger.info(f"Initializing PostgreSQL connection with params: {json.dumps({k: v if k != 'password' else '***' for k, v in params.items()})}")
 
-        # Install and load the MySQL extension
+        # Install and load the PostgreSQL extension
         try:
-            self.duck_db_conn.install_extension("mysql")
-            self.duck_db_conn.load_extension("mysql")
-            logger.info("MySQL extension installed and loaded successfully")
+            self.duck_db_conn.install_extension("postgres")
+            self.duck_db_conn.load_extension("postgres")
+            logger.info("PostgreSQL extension installed and loaded successfully")
         except Exception as e:
-            error_msg = f"Failed to install/load MySQL extension: {str(e)}"
+            error_msg = f"Failed to install/load PostgreSQL extension: {str(e)}"
             logger.error(error_msg)
             raise Exception(error_msg)
 
-        # Format connection string
-        connection_params = []
-        for key, value in self.params.items():
-            if value:
-                # Escape special characters in values
-                value = str(value).replace("'", "\\'").replace('"', '\\"')
-                connection_params.append(f"{key}=\"{value}\"")
+        # Format connection string for PostgreSQL
+        host = self.params.get('host', 'localhost')
+        port = self.params.get('port', '5432')
+        database = self.params.get('database', 'postgres')
+        user = self.params.get('user', 'postgres')
+        password = self.params.get('password', '')
 
-        attatch_string = " ".join(connection_params)
-        logger.info(f"Connection string (masked): {attatch_string.replace('password="***"', '')}")
+        # Create connection URL
+        connection_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+        logger.info(f"Connection URL (masked): postgresql://{user}:***@{host}:{port}/{database}")
 
-        # Detach existing mysqldb connection if it exists
+        # Detach existing postgresdb connection if it exists
         try:
-            self.duck_db_conn.execute("DETACH mysqldb;")
-            logger.info("Detached existing mysqldb connection")
+            self.duck_db_conn.execute("DETACH postgresdb;")
+            logger.info("Detached existing postgresdb connection")
         except:
-            logger.info("No existing mysqldb connection to detach")
+            logger.info("No existing postgresdb connection to detach")
 
         try:
-            # Register MySQL connection
-            self.duck_db_conn.execute(f"ATTACH '{attatch_string}' AS mysqldb (TYPE mysql);")
-            logger.info("Successfully connected to MySQL")
+            # Register PostgreSQL connection with connection URL
+            attach_query = f"ATTACH '{connection_url}' AS postgresdb (TYPE postgres)"
+            logger.info(f"Executing attach query: {attach_query.replace(password, '***')}")
+            self.duck_db_conn.execute(attach_query)
+            logger.info("Successfully connected to PostgreSQL")
         except Exception as e:
-            error_msg = f"Failed to connect to MySQL: {str(e)}"
+            error_msg = f"Failed to connect to PostgreSQL: {str(e)}"
             logger.error(error_msg)
             raise Exception(error_msg)
 
     def list_tables(self):
         tables_df = self.duck_db_conn.execute(f"""
-            SELECT TABLE_SCHEMA, TABLE_NAME FROM mysqldb.information_schema.tables
-            WHERE table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+            SELECT table_schema, table_name
+            FROM postgresdb.information_schema.tables
+            WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
+            AND table_type = 'BASE TABLE'
         """).fetch_df()
 
         results = []
 
         for schema, table_name in tables_df.values:
-
-            full_table_name = f"mysqldb.{schema}.{table_name}"
+            full_table_name = f"postgresdb.{schema}.{table_name}"
 
             # Get column information using DuckDB's information schema
             columns_df = self.duck_db_conn.execute(f"DESCRIBE {full_table_name}").df()
@@ -104,7 +107,7 @@ class MySQLDataLoader(ExternalDataLoader):
         return results
 
     def ingest_data(self, table_name: str, name_as: str | None = None, size: int = 1000000):
-        # Create table in the main DuckDB database from MySQL data
+        # Create table in the main DuckDB database from PostgreSQL data
         if name_as is None:
             name_as = table_name.split('.')[-1]
 

@@ -12,4 +12,5 @@ python-dotenv
 vega_datasets
 litellm
 duckdb
+azure-kusto-data
 -e . #also need to install data formulator itself

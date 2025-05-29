@@ -56,10 +56,17 @@ load_dotenv(os.path.join(APP_ROOT, "..", "..", 'api-keys.env'))
 load_dotenv(os.path.join(APP_ROOT, 'api-keys.env'))
 load_dotenv(os.path.join(APP_ROOT, '.env'))
 
+print(f"===============================================")
+print(f"APP_ROOT: {APP_ROOT}")
+print(f"env : {os.environ.get('USE_EXTERNAL_DB')}")
+print(f"env : {os.environ.get('DB_TYPE')}")
+print(f"env : {os.environ.get('DB_DATABASE')}")
+print(f"===============================================")
+
 # Add this line to store args at app level
 app.config['CLI_ARGS'] = {
     'exec_python_in_subprocess': os.environ.get('EXEC_PYTHON_IN_SUBPROCESS', 'false').lower() == 'true',
-    'disable_display_keys': os.environ.get('DISABLE_DISPLAY_KEYS', 'false').lower() == 'true'       
+    'disable_display_keys': os.environ.get('DISABLE_DISPLAY_KEYS', 'false').lower() == 'true'
 }
 
 # register blueprints
@@ -132,7 +139,7 @@ def get_example_dataset_list():
             dataset_info.append(info_obj)
         except:
             pass
-    
+
     response = flask.jsonify(dataset_info)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
@@ -211,14 +218,14 @@ def get_session_id():
     """Endpoint to get or confirm a session ID from the client"""
     # if it is a POST request, we expect a session_id in the body
     # if it is a GET request, we do not expect a session_id in the query params
-    
+
     current_session_id = None
     if request.is_json:
         content = request.get_json()
         current_session_id = content.get("session_id", None)
-        
+
     # Create session if it doesn't exist
-    if current_session_id is None:    
+    if current_session_id is None:
         if 'session_id' not in session:
             session['session_id'] = secrets.token_hex(16)
             session.permanent = True
@@ -226,8 +233,8 @@ def get_session_id():
     else:
         # override the session_id
         session['session_id'] = current_session_id
-        session.permanent = True 
-    
+        session.permanent = True
+
     return flask.jsonify({
         "status": "ok",
         "session_id": session['session_id']
@@ -268,7 +275,7 @@ def run_app():
     threading.Timer(2, lambda: webbrowser.open(url, new=2)).start()
 
     app.run(host='0.0.0.0', port=args.port, threaded=True)
-    
+
 if __name__ == '__main__':
     #app.run(debug=True, host='127.0.0.1', port=5000)
     #use 0.0.0.0 for public
